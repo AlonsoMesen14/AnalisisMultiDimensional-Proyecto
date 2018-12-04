@@ -5,7 +5,7 @@ GO
 CREATE TABLE CREDENCIALES
 (ID int IDENTITY (1,1) constraint cKey Primary Key NOT NULL,
 Nombre varchar(100) NOT NULL,
-Contraseña varchar(25) NOT NULL)
+ContraseÃ±a varchar(25) NOT NULL)
 
 -- Inserto los datos en la tabla credenciales
 INSERT INTO CREDENCIALES
@@ -42,7 +42,7 @@ GO
 CREATE CERTIFICATE Certificado WITH SUBJECT = 'Proteccion Datos';
 GO
 
--- Creo clave simétrica
+-- Creo clave simÃ©trica
 USE FTP;
 GO
 CREATE SYMMETRIC KEY Clave1 WITH ALGORITHM = AES_128 ENCRYPTION BY CERTIFICATE Certificado;
@@ -57,7 +57,7 @@ USE FTP;
 GO
 ALTER TABLE CREDENCIALES ADD Nombre_encriptado varbinary(MAX) NULL 
 GO
-ALTER TABLE CREDENCIALES ADD Contraseña_encriptada varbinary(MAX) NULL 
+ALTER TABLE CREDENCIALES ADD ContraseÃ±a_encriptada varbinary(MAX) NULL 
 GO
 
 -- Encripto los datos
@@ -66,7 +66,7 @@ GO
 -- Abro la clave Clave1
 OPEN SYMMETRIC KEY Clave1 DECRYPTION BY CERTIFICATE Certificado;
 GO
-UPDATE CREDENCIALES SET Contraseña_encriptada = EncryptByKey (Key_GUID('Clave1'),Contraseña) FROM CREDENCIALES;
+UPDATE CREDENCIALES SET ContraseÃ±a_encriptada = EncryptByKey (Key_GUID('Clave1'),ContraseÃ±a) FROM CREDENCIALES;
 GO
 -- Cierro la clave
 CLOSE SYMMETRIC KEY Clave1;
@@ -90,17 +90,17 @@ OPEN SYMMETRIC KEY Clave1 DECRYPTION BY CERTIFICATE Certificado;
 GO
 OPEN SYMMETRIC KEY Clave2 DECRYPTION BY CERTIFICATE Certificado;
 -- Leo los datos
-SELECT Nombre, Contraseña, Nombre_encriptado as 'Nombre Encriptado', CONVERT(varchar, DecryptByKey(Nombre_encriptado)) as 'Nombre desencriptado', Contraseña_encriptada as 'Contraseña Encriptada', CONVERT(varchar, DecryptByKey(Contraseña_encriptada)) AS 'Contraseña desencriptada' FROM CREDENCIALES;
+SELECT Nombre, ContraseÃ±a, Nombre_encriptado as 'Nombre Encriptado', CONVERT(varchar, DecryptByKey(Nombre_encriptado)) as 'Nombre desencriptado', ContraseÃ±a_encriptada as 'ContraseÃ±a Encriptada', CONVERT(varchar, DecryptByKey(ContraseÃ±a_encriptada)) AS 'ContraseÃ±a desencriptada' FROM CREDENCIALES;
 -- Cierro la llave
 CLOSE SYMMETRIC KEY Clave1;
 GO
 
--- Removemos la información que esta desencriptada
+-- Removemos la informaciÃ³n que esta desencriptada
 USE FTP;
 GO
 ALTER TABLE CREDENCIALES DROP COLUMN Nombre;
 GO
-ALTER TABLE CREDENCIALES DROP COLUMN Contraseña;
+ALTER TABLE CREDENCIALES DROP COLUMN ContraseÃ±a;
 GO
 
 -- En caso de necesitar otro registro
@@ -108,11 +108,36 @@ USE FTP;
 GO 
 OPEN SYMMETRIC KEY Clave1 DECRYPTION BY CERTIFICATE Certificado; 
 -- Agregar un registro 
-INSERT INTO CREDENCIALES (Nombre_encriptado, Contraseña_encriptada) VALUES (EncryptByKey(Key_GUID('Clave2'), CONVERT(varchar, 'Héctor'), EncryptByKey( Key_GUID('Clave1'), CONVERT(varchar,'diosdeamor01') ) );     
+INSERT INTO CREDENCIALES (Nombre_encriptado, ContraseÃ±a_encriptada) VALUES (EncryptByKey(Key_GUID('Clave2'), CONVERT(varchar, 'HÃ©ctor'), EncryptByKey( Key_GUID('Clave1'), CONVERT(varchar,'diosdeamor01') ) );     
 GO
 
--- Agrego dirección IP de la máquina y la ruta de conexión
+-- Agrego direcciÃ³n IP de la mÃ¡quina y la ruta de conexiÃ³n
 ALTER TABLE CREDENCIALES ADD Direccion_IP VARCHAR(20) NULL  , Ruta_de_Conexion VARCHAR(20) NULL;
 GO
 
+-- Agrego columna de contrase;a del ZIP encriptada
+ALTER TABLE CREDENCIALES ADD Contrasena_ZIP_encriptada VARCHAR(20) NULL;
+GO
+
+-- Creo clave simetrica 3
+USE FTP;
+GO
+CREATE SYMMETRIC KEY Clave3 WITH ALGORITHM = AES_128 ENCRYPTION BY CERTIFICATE Certificado;
+GO
+
+-- Encripto la columna
+ALTER TABLE CREDENCIALES ADD PWZip_encriptado varbinary(MAX) NULL 
+GO
+
+-- Abro la clave Clave3
+OPEN SYMMETRIC KEY Clave3 DECRYPTION BY CERTIFICATE Certificado;
+GO
+UPDATE CREDENCIALES SET PWZip_encriptado = EncryptByKey (Key_GUID('Clave3'),Contrasena_ZIP_encriptada) FROM CREDENCIALES;
+GO
+-- Cierro la clave
+CLOSE SYMMETRIC KEY Clave3;
+GO
+
+ALTER TABLE CREDENCIALES DROP COLUMN Contrasena_ZIP_encriptada;
+GO
 
