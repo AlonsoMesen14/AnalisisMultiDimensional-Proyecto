@@ -1,0 +1,118 @@
+USE FTP; 
+GO
+
+-- Creo la tabla de Credenciales
+CREATE TABLE CREDENCIALES
+(ID int IDENTITY (1,1) constraint cKey Primary Key NOT NULL,
+Nombre varchar(100) NOT NULL,
+Contraseña varchar(25) NOT NULL)
+
+-- Inserto los datos en la tabla credenciales
+INSERT INTO CREDENCIALES
+VALUES ('Andres', '123456789Afgs.')
+GO
+INSERT INTO CREDENCIALES
+VALUES ('Aaron', '1')
+GO
+INSERT INTO CREDENCIALES
+VALUES ('Alonso', '1')
+GO
+INSERT INTO CREDENCIALES
+VALUES ('Jose', '1')
+GO
+
+-- Veo los datos
+SELECT * FROM CREDENCIALES GO
+
+-- Verifico que se pueda encriptar
+USE master;
+GO
+SELECT * FROM sys.symmetric_keys WHERE name = '##MS_ServiceMasterKey##';
+GO
+
+-- Crear una clave
+USE FTP;
+GO 
+CREATE MASTER KEY ENCRYPTION BY PASSWORD = 'ClaveEncripcion';
+GO
+
+-- Crear certificado
+USE FTP;
+GO
+CREATE CERTIFICATE Certificado WITH SUBJECT = 'Proteccion Datos';
+GO
+
+-- Creo clave simétrica
+USE FTP;
+GO
+CREATE SYMMETRIC KEY Clave1 WITH ALGORITHM = AES_128 ENCRYPTION BY CERTIFICATE Certificado;
+GO
+USE FTP;
+GO
+CREATE SYMMETRIC KEY Clave2 WITH ALGORITHM = AES_128 ENCRYPTION BY CERTIFICATE Certificado;
+GO
+
+-- Columnas encriptadas
+USE FTP;
+GO
+ALTER TABLE CREDENCIALES ADD Nombre_encriptado varbinary(MAX) NULL 
+GO
+ALTER TABLE CREDENCIALES ADD Contraseña_encriptada varbinary(MAX) NULL 
+GO
+
+-- Encripto los datos
+USE FTP;
+GO
+-- Abro la clave Clave1
+OPEN SYMMETRIC KEY Clave1 DECRYPTION BY CERTIFICATE Certificado;
+GO
+UPDATE CREDENCIALES SET Contraseña_encriptada = EncryptByKey (Key_GUID('Clave1'),Contraseña) FROM CREDENCIALES;
+GO
+-- Cierro la clave
+CLOSE SYMMETRIC KEY Clave1;
+GO
+
+USE FTP;
+GO
+-- Abro la clave Clave1
+OPEN SYMMETRIC KEY Clave2 DECRYPTION BY CERTIFICATE Certificado;
+GO
+UPDATE CREDENCIALES SET Nombre_encriptado = EncryptByKey (Key_GUID('Clave2'),Nombre) FROM CREDENCIALES;
+GO
+-- Cierro la clave
+CLOSE SYMMETRIC KEY Clave2;
+GO
+
+-- Leer el contenido
+USE FTP;
+GO
+OPEN SYMMETRIC KEY Clave1 DECRYPTION BY CERTIFICATE Certificado;
+GO
+OPEN SYMMETRIC KEY Clave2 DECRYPTION BY CERTIFICATE Certificado;
+-- Leo los datos
+SELECT Nombre, Contraseña, Nombre_encriptado as 'Nombre Encriptado', CONVERT(varchar, DecryptByKey(Nombre_encriptado)) as 'Nombre desencriptado', Contraseña_encriptada as 'Contraseña Encriptada', CONVERT(varchar, DecryptByKey(Contraseña_encriptada)) AS 'Contraseña desencriptada' FROM CREDENCIALES;
+-- Cierro la llave
+CLOSE SYMMETRIC KEY Clave1;
+GO
+
+-- Removemos la información que esta desencriptada
+USE FTP;
+GO
+ALTER TABLE CREDENCIALES DROP COLUMN Nombre;
+GO
+ALTER TABLE CREDENCIALES DROP COLUMN Contraseña;
+GO
+
+-- En caso de necesitar otro registro
+USE FTP; 
+GO 
+OPEN SYMMETRIC KEY Clave1 DECRYPTION BY CERTIFICATE Certificado; 
+-- Agregar un registro 
+INSERT INTO CREDENCIALES (Nombre_encriptado, Contraseña_encriptada) VALUES (EncryptByKey(Key_GUID('Clave2'), CONVERT(varchar, 'Héctor'), EncryptByKey( Key_GUID('Clave1'), CONVERT(varchar,'diosdeamor01') ) );     
+GO
+
+-- Agrego dirección IP de la máquina y la ruta de conexión
+ALTER TABLE CREDENCIALES ADD Direccion_IP VARCHAR(20) NULL  , Ruta_de_Conexion VARCHAR(20) NULL;
+GO
+
+
