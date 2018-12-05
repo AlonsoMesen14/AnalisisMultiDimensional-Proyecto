@@ -1,0 +1,4 @@
+tar -xvf /home/andresgarcia/Desktop ./*
+tar -cvf /home/andresgarcia/Desktop ./*
+gzip /home/andresgarcia/Desktop/fileName
+zip -P analisis  /home/andresgarcia/Desktop/AdventureWorks.tar.gz.zip /home/andresgarcia/Desktop/AdventureWorks.tar.gz
