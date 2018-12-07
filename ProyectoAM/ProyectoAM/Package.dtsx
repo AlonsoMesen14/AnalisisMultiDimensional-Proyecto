@@ -11,8 +11,8 @@
   DTS:LocaleID="1033"
   DTS:ObjectName="Package"
   DTS:PackageType="5"
-  DTS:VersionBuild="40"
-  DTS:VersionGUID="{2EEDC8C1-8B65-45B9-BCD4-59CC8F747917}">
+  DTS:VersionBuild="41"
+  DTS:VersionGUID="{CC7DFFAC-6D32-4204-9E08-E57EDCF0B074}">
   <DTS:Property
     DTS:Name="PackageFormatVersion">8</DTS:Property>
   <DTS:ConnectionManagers>
@@ -920,14 +920,14 @@ where [refTable].[FullDateAlternateKey] = ?</property>
         <NodeLayout
           Size="212,42"
           Id="Package\Foreach File\extract sample curency data"
-          TopLeft="31,20" />
+          TopLeft="28,34" />
         <ContainerLayout
           HeaderHeight="43"
           IsExpanded="True"
-          PanelSize="264,209"
-          Size="264,252"
+          PanelSize="264,163"
+          Size="264,206"
           Id="Package\Foreach File"
-          TopLeft="433,187" />
+          TopLeft="421,74" />
       </GraphLayout>
     </LayoutInfo>
   </Package>
