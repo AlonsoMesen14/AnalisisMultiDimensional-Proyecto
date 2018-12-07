@@ -1,0 +1,71 @@
+Select * from CREDENCIALES;
+
+CREATE MASTER KEY ENCRYPTION BY
+PASSWORD = 'Password'
+GO
+
+CREATE CERTIFICATE SelfSignedCertificate
+WITH SUBJECT = 'PasswordEncryption';
+GO
+
+CREATE SYMMETRIC KEY SQLSymmetricKey
+WITH ALGORITHM = AES_128
+ENCRYPTION BY CERTIFICATE SelfSignedCertificate;
+GO
+
+USE Parametros; 
+GO 
+ALTER TABLE CREDENCIALES 
+ADD EncryptedPassword varbinary(MAX )NULL 
+GO
+
+USE Parametros; 
+GO 
+ALTER TABLE CREDENCIALES 
+ADD EncryptedName varbinary(MAX )NULL 
+GO
+
+USE Parametros; 
+GO 
+ALTER TABLE CREDENCIALES 
+ADD EncryptedRAR varbinary(MAX )NULL 
+GO
+
+OPEN SYMMETRIC KEY SQLSymmetricKey 
+DECRYPTION BY CERTIFICATE SelfSignedCertificate;
+
+UPDATE CREDENCIALES 
+SET [EncryptedPassword] = EncryptByKey(Key_GUID('SQLSymmetricKey'), Contraseña); 
+GO 
+select * from CREDENCIALES
+
+UPDATE CREDENCIALES 
+SET [EncryptedName] = EncryptByKey(Key_GUID('SQLSymmetricKey'), Nombre); 
+GO 
+select * from CREDENCIALES
+
+UPDATE CREDENCIALES 
+SET [EncryptedRAR] = EncryptByKey(Key_GUID('SQLSymmetricKey'), ContraseñaRAR); 
+GO 
+select * from CREDENCIALES
+
+
+OPEN SYMMETRIC KEY SQLSymmetricKey 
+DECRYPTION BY CERTIFICATE SelfSignedCertificate; 
+SELECT *, 
+CONVERT(varchar, DecryptByKey(EncryptedPassword)) AS 'DecryptedPassword',
+CONVERT(varchar, DecryptByKey(EncryptedName)) AS 'DecryptedName',
+CONVERT(varchar, DecryptByKey(EncryptedRAR)) AS 'DecryptedRAR'
+FROM CREDENCIALES;
+
+CLOSE SYMMETRIC KEY SQLSymmetricKey; 
+GO
+
+USE Parametros;
+GO
+ALTER TABLE CREDENCIALES DROP COLUMN Nombre;
+GO
+ALTER TABLE CREDENCIALES DROP COLUMN Contraseña;
+GO
+ALTER TABLE CREDENCIALES DROP COLUMN ContraseñaRAR;
+GO
